@@ -801,8 +801,8 @@ MonoBehaviour:
   castPoint: {fileID: 1467722220}
   drawCanvas: {fileID: 2021275751}
   gestureLineObject: {fileID: 38194595}
-  canvasDistance: 2
-  lineColor: {r: 0, g: 1, b: 1, a: 1}
+  canvasDistance: 0
+  canvasAnchor: {fileID: 1467722220}
   lineWidth: 0.1
 --- !u!1 &785892983
 GameObject:
@@ -989,7 +989,7 @@ Transform:
   m_GameObject: {fileID: 1467722219}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1264,8 +1264,8 @@ Transform:
   m_GameObject: {fileID: 2078314553}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.79, y: 1.63, z: 11.84}
-  m_LocalScale: {x: 1, y: 2, z: 1}
+  m_LocalPosition: {x: 5.79, y: 2.3, z: 11.84}
+  m_LocalScale: {x: 2, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

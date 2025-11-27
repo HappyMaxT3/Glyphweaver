@@ -13,6 +13,8 @@ public class SpellCaster : MonoBehaviour
     public Canvas drawCanvas;
     public GameObject gestureLineObject;
     public float canvasDistance = 2f;
+    public Transform canvasAnchor;
+
 
     [Header("Line Settings")]
     public float lineWidth = 0.1f;
@@ -26,6 +28,9 @@ public class SpellCaster : MonoBehaviour
     {
         playerCamera = Camera.main;
         if (castPoint == null) castPoint = transform;
+
+        if (canvasAnchor == null) canvasAnchor = playerCamera.transform;
+
         if (drawCanvas == null || gestureLineObject == null)
         {
             Debug.LogError("Canvas or GestureLine not assigned!");
@@ -93,9 +98,9 @@ public class SpellCaster : MonoBehaviour
 
     void UpdateCanvasPosition()
     {
-        Vector3 canvasPos = playerCamera.transform.position + playerCamera.transform.forward * canvasDistance;
+        Vector3 canvasPos = canvasAnchor.position + canvasAnchor.forward * canvasDistance;
         drawCanvas.transform.position = canvasPos;
-        drawCanvas.transform.rotation = playerCamera.transform.rotation;
+        drawCanvas.transform.rotation = canvasAnchor.rotation;
         drawCanvas.transform.localScale = Vector3.one * 0.001f;
     }
 

@@ -16,5 +16,5 @@ MonoBehaviour:
   minScore: 0.7
   effectPrefab: {fileID: 5464416525311234914, guid: 8462e34d0eb5f994fba4edc782810a0b, type: 3}
   baseDamage: 50
-  speed: 10
+  speed: 5
   gestureType: 0
