@@ -8,11 +8,7 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public float lookSensitivity = 2f;
 
-    [Header("Drawing Settings")]
-    [Range(0.01f, 1f)]
-    public float drawTimeScale = 0.2f;
-
-    [Header("Components")]
+    [Header("Drawing State")]
     public bool isDrawing = false;
 
     private Rigidbody rb;
@@ -72,70 +68,37 @@ public class PlayerController : MonoBehaviour
         rb.MovePosition(rb.position + moveDir.normalized * moveSpeed * Time.fixedDeltaTime);
     }
 
-    private void OnMove(InputAction.CallbackContext context)
-    {
-        moveInput = context.ReadValue<Vector2>();
-    }
+    private void OnMove(InputAction.CallbackContext ctx) =>
+        moveInput = ctx.ReadValue<Vector2>();
 
-    private void OnLook(InputAction.CallbackContext context)
-    {
-        lookInput = context.ReadValue<Vector2>();
-    }
+    private void OnLook(InputAction.CallbackContext ctx) =>
+        lookInput = ctx.ReadValue<Vector2>();
 
-    private void OnDrawModePerformed(InputAction.CallbackContext context)
+    private void OnDrawModePerformed(InputAction.CallbackContext ctx)
     {
         spellCaster.StartDrawing();
         isDrawing = true;
-
-        Time.timeScale = drawTimeScale;
-        Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
-    private void OnDrawModeCanceled(InputAction.CallbackContext context)
+    private void OnDrawModeCanceled(InputAction.CallbackContext ctx)
     {
         spellCaster.EndDrawing();
         isDrawing = false;
-
-        Time.timeScale = 1f;
-        Time.fixedDeltaTime = 0.02f;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
 
-    private void OnDrawStrokePerformed(InputAction.CallbackContext context)
+    private void OnDrawStrokePerformed(InputAction.CallbackContext ctx)
     {
-        if (!isDrawing) return;
-        spellCaster.BeginStroke();
+        if (isDrawing) spellCaster.BeginStroke();
     }
 
-    private void OnDrawStrokeCanceled(InputAction.CallbackContext context)
+    private void OnDrawStrokeCanceled(InputAction.CallbackContext ctx)
     {
-        if (!isDrawing) return;
-        spellCaster.EndStroke();
-    }
-
-    void OnDestroy()
-    {
-        if (inputActions != null)
-        {
-            inputActions.Player.Move.performed -= OnMove;
-            inputActions.Player.Move.canceled -= OnMove;
-
-            inputActions.Player.Look.performed -= OnLook;
-            inputActions.Player.Look.canceled -= OnLook;
-
-            inputActions.Player.DrawMode.performed -= OnDrawModePerformed;
-            inputActions.Player.DrawMode.canceled -= OnDrawModeCanceled;
-
-            inputActions.Player.DrawStroke.performed -= OnDrawStrokePerformed;
-            inputActions.Player.DrawStroke.canceled -= OnDrawStrokeCanceled;
-
-            inputActions.Player.Disable();
-            inputActions.Dispose();
-        }
+        if (isDrawing) spellCaster.EndStroke();
     }
 }

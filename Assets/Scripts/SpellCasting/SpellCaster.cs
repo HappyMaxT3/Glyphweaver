@@ -18,11 +18,18 @@ public class SpellCaster : MonoBehaviour
     [Header("Line Settings")]
     public float lineWidth = 0.1f;
 
+    [Header("Time Slowdown Settings")]
+    [Range(0.01f, 1f)] public float targetDrawTimeScale = 0.2f;
+    public float slowDownSpeed = 5f;
+
+    private float targetTimeScale = 1f;
+
     private LineRenderer lr;
     private List<Vector3> points = new List<Vector3>();
     private Vector3 lastMousePos;
     private Camera playerCamera;
     private bool strokeActive = false;
+    private bool drawingMode = false;
 
     void Awake()
     {
@@ -30,21 +37,7 @@ public class SpellCaster : MonoBehaviour
         if (castPoint == null) castPoint = transform;
         if (canvasAnchor == null) canvasAnchor = playerCamera.transform;
 
-        if (drawCanvas == null || gestureLineObject == null)
-        {
-            Debug.LogError("Canvas or GestureLine not assigned!");
-            enabled = false;
-            return;
-        }
-
         lr = gestureLineObject.GetComponent<LineRenderer>();
-        if (lr == null)
-        {
-            Debug.LogError("LineRenderer component missing!");
-            enabled = false;
-            return;
-        }
-
         lr.startWidth = lineWidth;
         lr.endWidth = lineWidth;
         lr.positionCount = 0;
@@ -56,7 +49,10 @@ public class SpellCaster : MonoBehaviour
 
     void Update()
     {
-        if (!drawCanvas.gameObject.activeSelf) return;
+        Time.timeScale = Mathf.Lerp(Time.timeScale, targetTimeScale, Time.unscaledDeltaTime * slowDownSpeed);
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
+
+        if (!drawingMode) return;
 
         UpdateCanvasPosition();
 
@@ -73,14 +69,17 @@ public class SpellCaster : MonoBehaviour
 
     public void StartDrawing()
     {
+        drawingMode = true;
+
         points.Clear();
         lr.positionCount = 0;
 
-        UpdateCanvasPosition();
         drawCanvas.gameObject.SetActive(true);
         gestureLineObject.SetActive(true);
 
         lastMousePos = Input.mousePosition;
+
+        targetTimeScale = targetDrawTimeScale;
     }
 
     public void BeginStroke()
@@ -96,14 +95,17 @@ public class SpellCaster : MonoBehaviour
 
     public void EndDrawing()
     {
+        drawingMode = false;
+
         drawCanvas.gameObject.SetActive(false);
         gestureLineObject.SetActive(false);
 
         if (points.Count > 10)
-        {
             ProcessSpellRecognition();
-        }
+
         points.Clear();
+
+        targetTimeScale = 1f;
     }
 
     private void ProcessSpellRecognition()
@@ -114,15 +116,11 @@ public class SpellCaster : MonoBehaviour
             if (score >= spell.minScore)
             {
                 CastSpell(spell, score);
-                points.Clear();
                 return;
             }
         }
 
-        if (availableSpells.Length > 0)
-        {
-            CastSpell(availableSpells[Random.Range(0, availableSpells.Length)], 0f);
-        }
+        CastSpell(availableSpells[Random.Range(0, availableSpells.Length)], 0f);
     }
 
     private float Recognize(SpellData.GestureType type)
@@ -141,30 +139,33 @@ public class SpellCaster : MonoBehaviour
     private void CastSpell(SpellData data, float score)
     {
         bool glitch = score < glitchThreshold;
-        var go = Instantiate(data.effectPrefab, castPoint.position, castPoint.rotation);
+
+        var go = Instantiate(
+            data.effectPrefab,
+            castPoint.position,
+            castPoint.rotation
+        );
 
         if (go.TryGetComponent<SpellEffect>(out var fx))
             fx.Initialize(data.baseDamage, glitch, data.speed);
-
-        Debug.Log($"Casting: {data.spellName} | Accuracy: {score:F2}");
     }
 
     private Vector3 ScreenToCanvasLocal(Vector3 screenPos)
     {
-        Vector2 localPoint;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             drawCanvas.GetComponent<RectTransform>(),
             screenPos,
             playerCamera,
-            out localPoint
+            out var lp
         );
-        return new Vector3(localPoint.x, localPoint.y, 0);
+        return new Vector3(lp.x, lp.y, 0);
     }
 
     private void UpdateCanvasPosition()
     {
-        Vector3 canvasPos = canvasAnchor.position + canvasAnchor.forward * canvasDistance;
-        drawCanvas.transform.position = canvasPos;
+        drawCanvas.transform.position =
+            canvasAnchor.position + canvasAnchor.forward * canvasDistance;
+
         drawCanvas.transform.rotation = canvasAnchor.rotation;
         drawCanvas.transform.localScale = Vector3.one * 0.001f;
     }
