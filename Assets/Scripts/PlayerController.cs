@@ -8,6 +8,10 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 5f;
     public float lookSensitivity = 2f;
 
+    [Header("Drawing Settings")]
+    [Range(0.01f, 1f)]
+    public float drawTimeScale = 0.2f;
+
     [Header("Components")]
     public bool isDrawing = false;
 
@@ -42,6 +46,9 @@ public class PlayerController : MonoBehaviour
 
         inputActions.Player.DrawMode.performed += OnDrawModePerformed;
         inputActions.Player.DrawMode.canceled += OnDrawModeCanceled;
+
+        inputActions.Player.DrawStroke.performed += OnDrawStrokePerformed;
+        inputActions.Player.DrawStroke.canceled += OnDrawStrokeCanceled;
     }
 
     void Update()
@@ -77,28 +84,38 @@ public class PlayerController : MonoBehaviour
 
     private void OnDrawModePerformed(InputAction.CallbackContext context)
     {
-        if (spellCaster != null)
-            spellCaster.StartDrawing();
-
+        spellCaster.StartDrawing();
         isDrawing = true;
+
+        Time.timeScale = drawTimeScale;
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        Debug.Log("Drawing mode activated");
     }
 
     private void OnDrawModeCanceled(InputAction.CallbackContext context)
     {
-        if (spellCaster != null)
-            spellCaster.EndDrawing();
-
+        spellCaster.EndDrawing();
         isDrawing = false;
+
+        Time.timeScale = 1f;
+        Time.fixedDeltaTime = 0.02f;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
 
-        Debug.Log("Spell cast completed");
+    private void OnDrawStrokePerformed(InputAction.CallbackContext context)
+    {
+        if (!isDrawing) return;
+        spellCaster.BeginStroke();
+    }
+
+    private void OnDrawStrokeCanceled(InputAction.CallbackContext context)
+    {
+        if (!isDrawing) return;
+        spellCaster.EndStroke();
     }
 
     void OnDestroy()
@@ -107,10 +124,15 @@ public class PlayerController : MonoBehaviour
         {
             inputActions.Player.Move.performed -= OnMove;
             inputActions.Player.Move.canceled -= OnMove;
+
             inputActions.Player.Look.performed -= OnLook;
             inputActions.Player.Look.canceled -= OnLook;
+
             inputActions.Player.DrawMode.performed -= OnDrawModePerformed;
             inputActions.Player.DrawMode.canceled -= OnDrawModeCanceled;
+
+            inputActions.Player.DrawStroke.performed -= OnDrawStrokePerformed;
+            inputActions.Player.DrawStroke.canceled -= OnDrawStrokeCanceled;
 
             inputActions.Player.Disable();
             inputActions.Dispose();

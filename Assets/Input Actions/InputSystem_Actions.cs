@@ -138,6 +138,15 @@ namespace PlayerInputActions
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DrawStroke"",
+                    ""type"": ""Button"",
+                    ""id"": ""d467036a-f36b-4d91-9d3c-ba35abfc6915"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -380,6 +389,17 @@ namespace PlayerInputActions
                     ""processors"": """",
                     ""groups"": "";Gamepad"",
                     ""action"": ""DrawMode"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7e05565e-eab1-4a4b-b68d-e3f5fb98afc3"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""DrawStroke"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -972,6 +992,7 @@ namespace PlayerInputActions
             m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
             m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
             m_Player_DrawMode = m_Player.FindAction("DrawMode", throwIfNotFound: true);
+            m_Player_DrawStroke = m_Player.FindAction("DrawStroke", throwIfNotFound: true);
             // UI
             m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
             m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1070,6 +1091,7 @@ namespace PlayerInputActions
         private readonly InputAction m_Player_Interact;
         private readonly InputAction m_Player_Sprint;
         private readonly InputAction m_Player_DrawMode;
+        private readonly InputAction m_Player_DrawStroke;
         /// <summary>
         /// Provides access to input actions defined in input action map "Player".
         /// </summary>
@@ -1101,6 +1123,10 @@ namespace PlayerInputActions
             /// Provides access to the underlying input action "Player/DrawMode".
             /// </summary>
             public InputAction @DrawMode => m_Wrapper.m_Player_DrawMode;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/DrawStroke".
+            /// </summary>
+            public InputAction @DrawStroke => m_Wrapper.m_Player_DrawStroke;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -1142,6 +1168,9 @@ namespace PlayerInputActions
                 @DrawMode.started += instance.OnDrawMode;
                 @DrawMode.performed += instance.OnDrawMode;
                 @DrawMode.canceled += instance.OnDrawMode;
+                @DrawStroke.started += instance.OnDrawStroke;
+                @DrawStroke.performed += instance.OnDrawStroke;
+                @DrawStroke.canceled += instance.OnDrawStroke;
             }
 
             /// <summary>
@@ -1168,6 +1197,9 @@ namespace PlayerInputActions
                 @DrawMode.started -= instance.OnDrawMode;
                 @DrawMode.performed -= instance.OnDrawMode;
                 @DrawMode.canceled -= instance.OnDrawMode;
+                @DrawStroke.started -= instance.OnDrawStroke;
+                @DrawStroke.performed -= instance.OnDrawStroke;
+                @DrawStroke.canceled -= instance.OnDrawStroke;
             }
 
             /// <summary>
@@ -1503,6 +1535,13 @@ namespace PlayerInputActions
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnDrawMode(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "DrawStroke" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnDrawStroke(InputAction.CallbackContext context);
         }
         /// <summary>
         /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

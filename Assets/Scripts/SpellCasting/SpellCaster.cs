@@ -15,7 +15,6 @@ public class SpellCaster : MonoBehaviour
     public float canvasDistance = 2f;
     public Transform canvasAnchor;
 
-
     [Header("Line Settings")]
     public float lineWidth = 0.1f;
 
@@ -23,12 +22,12 @@ public class SpellCaster : MonoBehaviour
     private List<Vector3> points = new List<Vector3>();
     private Vector3 lastMousePos;
     private Camera playerCamera;
+    private bool strokeActive = false;
 
     void Awake()
     {
         playerCamera = Camera.main;
         if (castPoint == null) castPoint = transform;
-
         if (canvasAnchor == null) canvasAnchor = playerCamera.transform;
 
         if (drawCanvas == null || gestureLineObject == null)
@@ -55,6 +54,23 @@ public class SpellCaster : MonoBehaviour
         drawCanvas.gameObject.SetActive(false);
     }
 
+    void Update()
+    {
+        if (!drawCanvas.gameObject.activeSelf) return;
+
+        UpdateCanvasPosition();
+
+        Vector3 mousePos = Input.mousePosition;
+        if (strokeActive && Vector3.Distance(mousePos, lastMousePos) > 8f)
+        {
+            Vector3 worldPos = ScreenToCanvasLocal(mousePos);
+            points.Add(worldPos);
+            lr.positionCount = points.Count;
+            lr.SetPosition(points.Count - 1, worldPos);
+            lastMousePos = mousePos;
+        }
+    }
+
     public void StartDrawing()
     {
         points.Clear();
@@ -67,24 +83,73 @@ public class SpellCaster : MonoBehaviour
         lastMousePos = Input.mousePosition;
     }
 
-    void Update()
+    public void BeginStroke()
     {
-        if (!drawCanvas.gameObject.activeSelf) return;
+        strokeActive = true;
+        lastMousePos = Input.mousePosition;
+    }
 
-        UpdateCanvasPosition();
+    public void EndStroke()
+    {
+        strokeActive = false;
+    }
 
-        Vector3 mousePos = Input.mousePosition;
-        if (Vector3.Distance(mousePos, lastMousePos) > 8f)
+    public void EndDrawing()
+    {
+        drawCanvas.gameObject.SetActive(false);
+        gestureLineObject.SetActive(false);
+
+        if (points.Count > 10)
         {
-            Vector3 worldPos = ScreenToCanvasLocal(mousePos);
-            points.Add(worldPos);
-            lr.positionCount = points.Count;
-            lr.SetPosition(points.Count - 1, worldPos);
-            lastMousePos = mousePos;
+            ProcessSpellRecognition();
+        }
+        points.Clear();
+    }
+
+    private void ProcessSpellRecognition()
+    {
+        foreach (var spell in availableSpells)
+        {
+            float score = Recognize(spell.gestureType);
+            if (score >= spell.minScore)
+            {
+                CastSpell(spell, score);
+                points.Clear();
+                return;
+            }
+        }
+
+        if (availableSpells.Length > 0)
+        {
+            CastSpell(availableSpells[Random.Range(0, availableSpells.Length)], 0f);
         }
     }
 
-    Vector3 ScreenToCanvasLocal(Vector3 screenPos)
+    private float Recognize(SpellData.GestureType type)
+    {
+        List<Vector2> p2d = new List<Vector2>();
+        foreach (var p in points) p2d.Add(new Vector2(p.x, p.y));
+
+        return type switch
+        {
+            SpellData.GestureType.Circle => GestureRecognizer.IsCircle2D(p2d).score,
+            SpellData.GestureType.Line => GestureRecognizer.IsLine2D(p2d).score,
+            _ => 0f
+        };
+    }
+
+    private void CastSpell(SpellData data, float score)
+    {
+        bool glitch = score < glitchThreshold;
+        var go = Instantiate(data.effectPrefab, castPoint.position, castPoint.rotation);
+
+        if (go.TryGetComponent<SpellEffect>(out var fx))
+            fx.Initialize(data.baseDamage, glitch, data.speed);
+
+        Debug.Log($"Casting: {data.spellName} | Accuracy: {score:F2}");
+    }
+
+    private Vector3 ScreenToCanvasLocal(Vector3 screenPos)
     {
         Vector2 localPoint;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -96,55 +161,11 @@ public class SpellCaster : MonoBehaviour
         return new Vector3(localPoint.x, localPoint.y, 0);
     }
 
-    void UpdateCanvasPosition()
+    private void UpdateCanvasPosition()
     {
         Vector3 canvasPos = canvasAnchor.position + canvasAnchor.forward * canvasDistance;
         drawCanvas.transform.position = canvasPos;
         drawCanvas.transform.rotation = canvasAnchor.rotation;
         drawCanvas.transform.localScale = Vector3.one * 0.001f;
-    }
-
-    public void EndDrawing()
-    {
-        drawCanvas.gameObject.SetActive(false);
-        gestureLineObject.SetActive(false);
-
-        if (points.Count > 10)
-        {
-            foreach (var spell in availableSpells)
-            {
-                float score = Recognize(spell.gestureType);
-                if (score >= spell.minScore)
-                {
-                    CastSpell(spell, score);
-                    points.Clear();
-                    return;
-                }
-            }
-            if (availableSpells.Length > 0)
-                CastSpell(availableSpells[Random.Range(0, availableSpells.Length)], 0f);
-        }
-        points.Clear();
-    }
-
-    float Recognize(SpellData.GestureType type)
-    {
-        List<Vector2> p2d = new List<Vector2>();
-        foreach (var p in points) p2d.Add(new Vector2(p.x, p.y));
-        return type switch
-        {
-            SpellData.GestureType.Circle => GestureRecognizer.IsCircle2D(p2d).score,
-            SpellData.GestureType.Line => GestureRecognizer.IsLine2D(p2d).score,
-            _ => 0f
-        };
-    }
-
-    void CastSpell(SpellData data, float score)
-    {
-        bool glitch = score < glitchThreshold;
-        var go = Instantiate(data.effectPrefab, castPoint.position, castPoint.rotation);
-        if (go.TryGetComponent<SpellEffect>(out var fx))
-            fx.Initialize(data.baseDamage, glitch, data.speed);
-        Debug.Log($"Casting: {data.spellName} | Accuracy: {score:F2}");
     }
 }

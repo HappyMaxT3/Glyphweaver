@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class DummyEnemy : MonoBehaviour
 {
-    public float health = 100f;
+    public float health = 1f;
 
     public void TakeDamage(float damage, bool isGlitch = false)
     {

@@ -50,6 +50,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "DrawStroke",
+                    "type": "Button",
+                    "id": "d467036a-f36b-4d91-9d3c-ba35abfc6915",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -292,6 +301,17 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "DrawMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7e05565e-eab1-4a4b-b68d-e3f5fb98afc3",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "DrawStroke",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
